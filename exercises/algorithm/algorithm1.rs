@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -69,15 +68,50 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+	pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self
+where
+    T: Ord,
+{
+    let mut result = LinkedList::new();
+
+    let mut ptr_a = list_a.start.take();
+    let mut ptr_b = list_b.start.take();
+
+    while ptr_a.is_some() || ptr_b.is_some() {
+        let mut next_node = if ptr_b.is_none()
+            || (ptr_a.is_some()
+                && unsafe { (*ptr_a.unwrap().as_ptr()).val <= (*ptr_b.unwrap().as_ptr()).val })
+        {
+            // 从 A 中取节点
+            let node = ptr_a.unwrap();
+            ptr_a = unsafe { (*node.as_ptr()).next };
+            node
+        } else {
+            // 从 B 中取节点
+            let node = ptr_b.unwrap();
+            ptr_b = unsafe { (*node.as_ptr()).next };
+            node
+        };
+
+        unsafe {
+            (*next_node.as_ptr()).next = None;
         }
-	}
+
+        match result.end {
+            None => {
+                result.start = Some(next_node);
+            }
+            Some(mut end_ptr) => unsafe {
+                (*end_ptr.as_ptr()).next = Some(next_node);
+            },
+        }
+        result.end = Some(next_node);
+        result.length += 1;
+    }
+
+    result
+}
+
 }
 
 impl<T> Display for LinkedList<T>

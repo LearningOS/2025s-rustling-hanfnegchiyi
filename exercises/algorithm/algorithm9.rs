@@ -2,7 +2,7 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -37,8 +37,23 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1;
+        self.items.push(value); // 将新元素添加到末尾
+        let mut idx = self.count; // 新插入的元素索引
+    
+        // 向上调整元素，直到堆的性质被满足
+        while idx > 1 {
+            let parent_idx = self.parent_idx(idx); // 获取父节点的索引
+            if (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
+                self.items.swap(idx, parent_idx); // 上浮操作
+                idx = parent_idx;
+            } else {
+                break;
+            }
+        }
     }
+    
+    
 
     fn parent_idx(&self, idx: usize) -> usize {
         idx / 2
@@ -57,9 +72,20 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        if self.right_child_idx(idx) > self.count {
+            // 如果没有右孩子，则返回左孩子
+            self.left_child_idx(idx)
+        } else {
+            let left = self.left_child_idx(idx);
+            let right = self.right_child_idx(idx);
+            if (self.comparator)(&self.items[left], &self.items[right]) {
+                left  // 左孩子更小
+            } else {
+                right // 右孩子更小
+            }
+        }
     }
+    
 }
 
 impl<T> Heap<T>
@@ -84,9 +110,28 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            return None; // 如果堆为空，返回 None
+        }
+    
+        let result = self.items.swap_remove(1); // 获取堆顶元素并交换到最后
+        self.count -= 1;
+    
+        let mut idx = 1;
+        while self.children_present(idx) {
+            let child_idx = self.smallest_child_idx(idx); // 获取更优的子节点
+            if (self.comparator)(&self.items[child_idx], &self.items[idx]) {
+                self.items.swap(idx, child_idx); // 交换位置，进行下沉
+                idx = child_idx;
+            } else {
+                break; // 如果堆的性质已经满足，停止下沉
+            }
+        }
+    
+        Some(result) // 返回堆顶元素
     }
+    
+    
 }
 
 pub struct MinHeap;
